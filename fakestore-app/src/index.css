@@ -1,0 +1,161 @@
+/* Global Styles */
+:root {
+  --primary-color: #0070FF; /* Primary color for buttons and links */
+  --primary-hover: #0965dd; /* Hover color for buttons and links */
+  --scrollbar-bg: #f1f1f1; /* Background color for the scrollbar track */
+  --scrollbar-thumb: #888; /* Default color for the scrollbar thumb */
+  --scrollbar-thumb-hover: #555; /* Hover color for the scrollbar thumb */
+  --footer-bg: #f8f9fa; /* Background color for the footer */
+  --footer-text: #6c757d; /* Text color for the footer */
+  --white: #fff; /* White color for text and backgrounds */
+
+  margin: 0 auto; /* Center content horizontally */
+  padding: 2rem; /* Default padding */
+  text-align: center; /* Center-align text */
+}
+
+* {
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  box-sizing: border-box; /* Include padding and border in element's total width/height */
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 5px; /* Width of the scrollbar */
+  height: 5px; /* Height of the scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb); /* Default scrollbar thumb color */
+  border-radius: 10px; /* Rounded corners for the scrollbar thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover); /* Hover color for the scrollbar thumb */
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg); /* Background color for the scrollbar track */
+  border-radius: 10px; /* Rounded corners for the scrollbar track */
+}
+
+/* Button Style */
+.custom-button {
+  background-color: var(--primary-color); /* Button background color */
+  color: var(--white); /* Button text color */
+  text-decoration: none; /* Remove underline from text */
+  width: 50%; /* Button width */
+  margin: 0 auto 12px; /* Center the button and add bottom margin */
+  border-radius: 8px; /* Rounded corners for the button */
+  padding: 10px 0; /* Vertical padding for the button */
+  display: block; /* Make the button a block element */
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.custom-button:hover {
+  background-color: var(--primary-hover); /* Change background color on hover */
+}
+
+/* Style for product images */
+.Url {
+  height: 90px; /* Set the height of the product image */
+  width: 50px; /* Set the width of the product image */
+}
+
+/* Style for product cards */
+.card {
+  height: 30px; /* Set the height of the card */
+  width: 250px; /* Set the width of the card */
+  margin-left: 50px; /* Add left margin */
+  padding: 10px; /* Add padding inside the card */
+  margin-top: 10px; /* Add top margin */
+  cursor: pointer; /* Change cursor to pointer on hover */
+  box-shadow: 5px 5px 5px hsla(0, 0%, 0%, 0.1); /* Add shadow for the card */
+  transition: transform 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.card img {
+  border-radius: 10px; /* Rounded corners for the card image */
+  transition: transform 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.card img:hover {
+  transform: scale(1.05); /* Slightly enlarge the image on hover */
+}
+
+.card:hover {
+  transform: scale(1.05); /* Slightly enlarge the card on hover */
+}
+
+/* Style for text inside the card */
+.text {
+  text-align: center; /* Center-align the text */
+  letter-spacing: 1px; /* Add spacing between letters */
+  text-decoration: none; /* Remove underline from text */
+  font-size: 1em; /* Set font size */
+  color: var(--white); /* Set text color */
+}
+
+/* Style for headings */
+.text-h {
+  text-align: center; /* Center-align the heading */
+  letter-spacing: 1px; /* Add spacing between letters */
+}
+
+/* Style for forms */
+.form {
+  width: 60%; /* Set the width of the form */
+  margin: auto; /* Center the form horizontally */
+}
+
+/* Background image for the Home page */
+.home-background {
+  background-image: url("./Picture/pic-60.jpg"); /* Set the background image */
+  background-size: cover; /* Ensure the image covers the entire area */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Prevent the image from repeating */
+  min-height: calc(100vh - 100px); /* Subtract the footer height */
+  width: 100%; /* Ensure it spans the full width */
+  position: relative; /* Allow absolute positioning for child elements */
+}
+
+/* Style for the content on top of the background image */
+.home-content {
+  position: relative; /* Position the content relative to the background */
+  z-index: 2; /* Ensure the content appears above the background */
+  color: var(--white); /* Set text color */
+  text-align: center; /* Center-align the text */
+  padding: 20px; /* Add padding around the content */
+}
+
+/* Ensure the footer stays at the bottom of the page */
+.footer-container {
+  position: fixed; /* Fix the footer at the bottom of the page */
+  bottom: 0; /* Align the footer to the bottom */
+  left: 0; /* Align the footer to the left */
+  width: 100%; /* Make the footer span the full width */
+  background-color: var(--footer-bg); /* Set the footer background color */
+  text-align: center; /* Center-align the text */
+  padding: 10px 0; /* Add vertical padding */
+}
+
+.footer {
+  font-size: 14px; /* Set the font size for the footer text */
+  color: var(--footer-text); /* Set the footer text color */
+}
+
+.text-footer {
+  margin: 0; /* Remove margin */
+  letter-spacing: 1px; /* Add spacing between letters */
+}
+
+/* Push the footer to the bottom */
+main {
+  flex: 1; /* Allow the main content to grow and push the footer down */
+}
+
+/* Add space below the product list */
+.ProductList .container {
+  margin-bottom: 100px; /* Add bottom margin to the product list */
+}
