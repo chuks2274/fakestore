@@ -1,217 +1,183 @@
 // Import necessary libraries and components
-import axios from "axios"; // For making HTTP requests
-import { useState } from "react"; // For managing component state
+import React, { useState } from "react"; // React and useState hook
+import axios from "axios"; // Axios for making HTTP requests
 import Container from "react-bootstrap/Container"; // Bootstrap container for layout
-import Form from "react-bootstrap/Form"; // Bootstrap form for input fields
-import Button from "react-bootstrap/Button"; // Bootstrap button for form submission
-import Spinner from "react-bootstrap/Spinner"; // Bootstrap spinner for loading state
+import Form from "react-bootstrap/Form"; // Bootstrap form component
+import Button from "react-bootstrap/Button"; // Bootstrap button component
+import Spinner from "react-bootstrap/Spinner"; // Bootstrap spinner for loading indication
+import Alert from "react-bootstrap/Alert"; // Bootstrap alert for messages
 
-// Define the UpdateProduct component
-export const UpdateProduct = () => {
-    // State for managing form data
-    const [formData, setFormData] = useState({
-        productId: '', // Product ID
-        title: '', // Product title
-        description: '', // Product description
-        category: '', // Product category
-        price: '', // Product price
-        image: '', // Product image URL
-    });
+// Functional component for updating a product
+const UpdateProduct = () => {
+  // Local state for form data, representing product fields
+  const [formData, setFormData] = useState({
+    productId: '',       // ID of the product to update
+    title: '',           // Product title
+    description: '',     // Product description
+    category: '',        // Product category
+    price: '',           // Product price
+    image: '',           // Product image URL
+  });
 
-    // State for managing error and success messages
-    const [error, setError] = useState(''); // Error message
-    const [success, setSuccess] = useState(''); // Success message
-    const [loading, setLoading] = useState(false); // Spinner state for loading
+  // Local states to manage error message, success message, loading status, and result
+  const [error, setError] = useState(''); // Holds error message if any
+  const [success, setSuccess] = useState(''); // Holds success message
+  const [loading, setLoading] = useState(false); // Indicates if update is in progress
+  const [updatedProduct, setUpdatedProduct] = useState(null); // Stores updated product data
 
-    // Handle input changes in the form
-    const handleChange = (event) => {
-        const { name, value } = event.target;
+  // Handle input changes and reset error/success messages
+  const handleChange = (event) => { // Function to handle input changes
+    const { name, value } = event.target; // Destructure name and value from the input event
+    setFormData((prev) => ({ // Update formData for the changed field
+      ...prev, // Spread previous state to keep other fields intact
+      [name]: value, // Use computed property name to set the correct data field
+    }));
+    if (error) setError(''); // Clear error on input change
+    if (success) setSuccess(''); // Clear success on input change
+  };
 
-        // Update the form data state
-        setFormData((prevState) => ({
-            ...prevState,
-            [name]: value,
-        }));
-    };
+  // Validate that all fields are filled and price is a number
+  const validateForm = () => { // Function to validate form data
+    const { productId, title, description, category, price, image } = formData; // Destructure formData for validation
+    // Check if any field is empty or if price is not a number
+    if (!productId || !title || !description || !category || !price || !image) {
+      setError('All fields are required.'); // Show error if any field is missing or empty
+      return false; // Stop validation if any field is empty
+    }
+    if (isNaN(price)) { // Check if price is not a number
+      setError('Price must be a valid number.'); // Show error if price is not a number
+      return false; // Stop validation if price is invalid
+    }
+    return true; // Return true if all validations pass
+  };
 
-    // Validate the form before submission
-    const validateForm = () => {
-        const { productId, title, description, category, price, image } = formData;
+  // Handle form submission and send PUT request to update product
+  const handleUpdateProduct = async (event) => { // Function to handle form submission
+    event.preventDefault(); // Prevent default form submission behavior
+    if (!validateForm()) return; // Stop if form is invalid
 
-        // Check if any required field is empty
-        if (
-            productId.trim() === '' ||
-            title.trim() === '' ||
-            description.trim() === '' ||
-            category.trim() === '' ||
-            price.trim() === '' ||
-            image.trim() === ''
-        ) {
-            setSuccess(''); // Clear success message
-            setError('Product ID, title, description, category, price, and image are required'); // Set error message
-            return false;
-        }
-        setError(''); // Clear error message
-        return true;
-    };
+    setLoading(true); // Start loading spinner
+    setError(''); // Clear previous error
+    setSuccess(''); // Clear previous success
+    setUpdatedProduct(null); // Clear previous updated product display
 
-    // Handle the form submission to update the product
-    const updateProduct = async (event) => {
-        event.preventDefault(); // Prevent default form submission behavior
+    try {
+      // Separate productId from the rest of the product details
+      const { productId, ...productDetails } = formData; // Destructure productId and rest of the details
 
-        // Validate the form
-        if (!validateForm()) return;
+      // Send PUT request to update the product
+      const response = await axios.put(`https://fakestoreapi.com/products/${productId}`, productDetails); // API endpoint for updating product
+      console.log('Updated product:', response.data); // Log updated product
 
-        setLoading(true); // Show the spinner
-        setError(''); // Clear error message
-        setSuccess(''); // Clear success message
+      // Update state with the returned product and success message
+      setUpdatedProduct(response.data); // Store updated product data
+      setSuccess(`Product #${response.data.id} updated successfully!`); // Show success massage
 
-        try {
-            const { productId, title, description, category, price, image } = formData;
+      // Reset form fields after successful update
+      setFormData({
+        productId: '', // Reset productId field
+        title: '',   // Reset tittle field
+        description: '', // Reset description field
+        category: '', // Reset category field
+        price: '', // Reset price field
+        image: '', // Reset image field
+      });
+    } catch (err) {
+      // Handle errors and display appropriate message
+      setError(err.response?.data?.message || 'An error occurred while updating the product.'); // Show error message if request fails
+    } finally {
+      setLoading(false); // Stop spinner regardless of outcome
+    }
+  };
 
-            // Make an HTTP PUT request to update the product
-            const response = await axios.put(`https://fakestoreapi.com/products/${productId}`, {
-                id: productId,
-                title,
-                description,
-                category,
-                price,
-                image,
-            });
+  return (
+    // Page container with background and vertical spacing
+    <div
+      className="bg-info d-flex justify-content-center align-items-start py-5"
+      style={{ minHeight: "100vh", overflow: "hidden" }} // Full height and hidden overflow for better layout
+    >
+      {/* Bootstrap container for form layout */}
+      <Container className="p-4 rounded shadow-sm bg-info" style={{ maxWidth: '700px' }}> {/* Set max width for the form */}
+        <h2 className="text-center mb-4">Update Product</h2> {/* Form title */}
 
-            console.log("Updated product:", response.data); // Log the updated product data
+        {/* Show error alert if error exists */}
+        {error && <Alert variant="danger">{error}</Alert>} 
+        
+        {/* Show success alert if product was updated */}
+        {success && <Alert variant="success">{success}</Alert>} 
 
-            // Set the success message with updated product details
-            setSuccess(
-                <div>
-                    <p>Product #{response.data.id} Updated Successfully!</p>
-                    <p>New Title: {response.data.title}</p>
-                    <p>New Description: {response.data.description}</p>
-                    <p>New Category: {response.data.category}</p>
-                    <p>New Price: ${response.data.price}</p>
-                    <p>New Image: {response.data.image}</p>
-                </div>
-            );
-        } catch (error) {
-            console.error("Update failed:", error); // Log the error
-            setError(error.response?.data?.message || 'Failed to update product'); // Set error message
-        } finally {
-            setLoading(false); // Hide the spinner
-        }
-    };
+        {/* Show updated product info after successful update */}
+        {updatedProduct && (
+          <div className="mb-4 text-center"> {/* Centered display of updated product */}
+            <img
+              src={updatedProduct.image} // Display updated product image
+              alt={updatedProduct.title} // Alt text for image
+              className="img-fluid mb-3" // Responsive image class
+              style={{ maxHeight: '200px', borderRadius: '10px' }} // Style for image
+              /> 
+            <div>
+              <p><strong>ID:</strong> {updatedProduct.id}</p> {/* Display updated product ID */}
+              <p><strong>Title:</strong> {updatedProduct.title}</p>  {/* Display updated product title */}
+              <p><strong>Description:</strong> {updatedProduct.description}</p> {/* Display updated product description */}
+              <p><strong>Category:</strong> {updatedProduct.category}</p> {/* Display updated product category */}
+              <p><strong>Price:</strong> ${updatedProduct.price}</p> {/* Display updated product price */}
+            </div>
+          </div>
+        )}
 
-    return (
-        <Container className="mt-5">
-            {/* Page heading */}
-            <h2 className="mt-5 text-h">Update Product</h2>
+        {/* Form to update product */}
+        <Form onSubmit={handleUpdateProduct} className="d-flex flex-column align-items-center"> {/* Form submission handler */}
+          {/* Dynamically render input fields */}
+          {[ 
+            { label: 'Product ID', name: 'productId', type: 'number' }, // Prduct ID field
+            { label: 'Title', name: 'title', type: 'text' }, // Product title field
+            { label: 'Description', name: 'description', type: 'text' }, // Product description field
+            { label: 'Category', name: 'category', type: 'text' }, // Product category field
+            { label: 'Price', name: 'price', type: 'text' }, // Product price field
+            { label: 'Image URL', name: 'image', type: 'text' }, // Product image URL field
+          ].map(({ label, name, type }) => (
+            <Form.Group key={name} className="mb-3 w-100 d-flex flex-column align-items-center"> {/* Map through fields to create input elements */}
+              <Form.Label className="w-100 text-center">{label}</Form.Label> {/* label for each field */}
+              <Form.Control
+                type={type} // Field type (text, number)
+                name={name} // Field name
+                value={formData[name]} // Controlled component: value comes from state
+                onChange={handleChange} // Update state on change
+                placeholder={`Enter ${label.toLowerCase()}`} // Placeholder text
+                disabled={loading} // Disable input during loading
+                required // Make field required
+                style={{ width: "60%" }} // Input field width
+              />
+            </Form.Group>
+          ))}
 
-            {/* Display error message if any */}
-            {error && <div style={{ color: 'red' }}>{error}</div>}
-
-            {/* Display success message if any */}
-            {success && <div style={{ color: 'green' }}>{success}</div>}
-
-            {/* Form for updating the product */}
-            <Form onSubmit={updateProduct}>
-                {/* Product ID input */}
-                <Form.Group className="mb-3 form">
-                    <Form.Label>Product ID</Form.Label>
-                    <Form.Control
-                        type="number"
-                        placeholder="Enter id"
-                        name="productId"
-                        value={formData.productId}
-                        onChange={handleChange}
-                        required
-                    />
-                </Form.Group>
-
-                {/* Title input */}
-                <Form.Group className="mb-3 form">
-                    <Form.Label>Title</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter a title"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        required
-                    />
-                </Form.Group>
-
-                {/* Description input */}
-                <Form.Group className="mb-3 form">
-                    <Form.Label>Description</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter a description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        required
-                    />
-                </Form.Group>
-
-                {/* Category input */}
-                <Form.Group className="mb-3 form">
-                    <Form.Label>Category</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter a category"
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        required
-                    />
-                </Form.Group>
-
-                {/* Price input */}
-                <Form.Group className="mb-3 form">
-                    <Form.Label>Price</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter a price"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleChange}
-                        required
-                    />
-                </Form.Group>
-
-                {/* Image URL input */}
-                <Form.Group className="mb-3 form">
-                    <Form.Label>Image</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter an image URL"
-                        name="image"
-                        value={formData.image}
-                        onChange={handleChange}
-                        required
-                    />
-                </Form.Group>
-
-                {/* Submit button */}
-                <Button variant="primary" type="submit" disabled={loading}>
-                    {loading ? (
-                        <>
-                            {/* Spinner for loading state */}
-                            <Spinner
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                            /> Updating...
-                        </>
-                    ) : (
-                        "Update Product" // Button text when not loading
-                    )}
-                </Button>
-            </Form>
-        </Container>
-    );
+          {/* Submit button with spinner if loading */}
+          <Button
+            variant="primary" // Bootstrap primary button style
+            type="submit" // Submit button type
+            style={{ width: "40%" }} // Button width
+            disabled={loading} // Disable button during loading
+          >
+            {loading ? (
+              <>
+                <Spinner
+                  as="span" // Spinner component
+                  animation="border" // Spinner animation type
+                  size="sm" // Spinner size
+                  role="status" // Accessibility role
+                  aria-hidden="true" // Hide spinner from screen readers
+                />{" "}
+                Updating...
+              </> // Spinner and text if loading
+            ) : (
+              "Update Product" // Button text if not loading
+            )}
+          </Button>
+        </Form>
+      </Container>
+    </div>
+  );
 };
 
-// Export the UpdateProduct component as the default export
+// Makes the UpdateProduct component available for use in other parts of the application 
 export default UpdateProduct;

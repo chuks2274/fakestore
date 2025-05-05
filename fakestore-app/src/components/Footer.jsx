@@ -1,21 +1,34 @@
-// Import React library
+// Import the React library to use JSX and create components
 import React from 'react';
 
-// Define the Footer component
+// Define a functional component named Footer
 const Footer = () => {
-  // Get the current year dynamically
-  const currentYear = new Date().getFullYear();
+  // Get the current year dynamically using JavaScript's Date object
+  const currentYear = new Date().getFullYear(); // Get the current year
 
+  // Return the JSX markup for rendering the footer
   return (
-    // Footer container for styling and layout
-    <div className="footer-container">
-      <footer className="footer">
-        {/* Display the copyright text with the current year */}
-        <p className="text-footer">&copy; {currentYear} HumbleStore. All rights reserved.</p>
-      </footer>
-    </div>
+    // Use the <footer> semantic HTML5 tag for the website footer
+    // Apply Bootstrap utility classes:
+    // - bg-light: light grey background
+    // - text-dark: dark text color for contrast
+    // - text-center: center-align text
+    // - py-3: vertical padding (top and bottom)
+    // - mt-auto: pushes footer to the bottom in flex layouts
+    // Also include ARIA attributes for accessibility
+    <footer className="bg-light text-dark text-center py-3 mt-auto" role="contentinfo" aria-label="Footer">
+      
+      {/* Container class centers and constrains the content horizontally */}
+      <div className="container">
+        
+        {/* Display the copyright symbol and dynamic year */}
+        {/* mb-0 removes bottom margin; text-footer is likely a custom class for styling */}
+        <p className="mb-0 text-footer">&copy; {currentYear} HumbleStore. All rights reserved.</p>
+      
+      </div>
+    </footer>
   );
 };
 
-// Export the Footer component as the default export
+// Makes the Footer component available for use in other parts of the application 
 export default Footer;

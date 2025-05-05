@@ -9,8 +9,10 @@ import { BrowserRouter} from 'react-router-dom'; // Import BrowserRouter for ena
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/* Wrap the application in BrowserRouter to enable routing */}
+       
     <BrowserRouter> 
     <App />
     </BrowserRouter>
+    
   </StrictMode>,
 )

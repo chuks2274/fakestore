@@ -1,169 +1,199 @@
-import axios from "axios"; // Axios for making HTTP requests
-import { useState } from "react"; // React hook for managing state
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
-import Container from "react-bootstrap/Container"; // Bootstrap Container for layout
-import Form from "react-bootstrap/Form"; // Bootstrap Form for input fields
-import Button from "react-bootstrap/Button"; // Bootstrap Button component
-import Spinner from "react-bootstrap/Spinner"; // Bootstrap Spinner for loading indicators
+// Import necessary libraries and components
+import { useState } from "react"; // useState is a React hook to manage state in the component
+import axios from "axios"; // Import axios for making HTTP requests
+import Container from "react-bootstrap/Container"; // Import Container from Bootstrap for layout
+import Form from "react-bootstrap/Form"; // Import Form component from Bootstrap to handle form inputs
+import Button from "react-bootstrap/Button"; // Import Button from Bootstrap to create buttons
+import Spinner from "react-bootstrap/Spinner"; // Import Spinner from Bootstrap for loading indicators
+import Alert from "react-bootstrap/Alert"; // Import Alert from Bootstrap to display error or success messages
 
 // Define the DeleteProduct component
 const DeleteProduct = () => {
-    const navigate = useNavigate(); // Initialize navigate function
-    const [productId, setProductId] = useState(''); // Stores the product ID entered by the user
-    const [product, setProduct] = useState(null); // Stores the product details fetched from the API
-    const [error, setError] = useState(''); // Stores error messages
-    const [success, setSuccess] = useState(''); // Stores success messages
-    const [loadingFind, setLoadingFind] = useState(false); // Tracks the loading state for finding a product
-    const [loadingDelete, setLoadingDelete] = useState(false); // Tracks the loading state for deleting a product
+  // Declare state variables
+  const [productId, setProductId] = useState(""); // State to store the product ID input by the user
+  const [product, setProduct] = useState(null); // State to store the fetched product data
+  const [error, setError] = useState(""); // State to store error messages
+  const [success, setSuccess] = useState(""); // State to store success messages
+  const [loading, setLoading] = useState(false); // State to track loading status when searching for a product
+  const [loadingDelete, setLoadingDelete] = useState(false); // State to track loading status during product deletion
 
-    // Handle changes to the product ID input field
-    const handleproductIdChange = (event) => {
-        setProductId(event.target.value);
-    };
+  // Reset error and success messages
+  const resetMessages = () => { // Function to reset error and success messages
+    setError(""); // Reset error message
+    setSuccess(""); // Reset success message
+  };
 
-    // Validate the form to ensure the product ID is not empty
-    const validateForm = () => {
-        if (String(productId).trim() === '') {
-            setError('Product ID is required'); // Set an error message if the product ID is empty
-            return false;
-        }
-        setError(''); // Clear any previous error messages
-        return true;
-    };
+  // Handle changes in the product ID input field
+  const handleProductIdChange = (e) => { // Function to handle input changes
+    setProductId(e.target.value); // Update the productId state with the new value
+    if (error || success) resetMessages(); // Reset error or success messages if present
+  };
 
-    // Function to find a product by its ID
-    const findProduct = async (event) => {
-        event.preventDefault(); // Prevent the default form submission behavior
+  // Validate the product ID input
+  const validateProductId = () => { // Function to validate the product ID
+    if (!productId.trim()) { // Check if productId is empty or consists of only spaces
+      setError("Product ID is required."); // Set error message
+      return false; // Return false to indicate validation failed
+    }
+    if (isNaN(productId) || Number(productId) <= 0) { // Check if productId is not a valid positive number
+      setError("Please enter a valid numeric Product ID."); // Set error message
+      return false; // Return false to indicate validation failed
+    }
+    return true; // Return true if validation passes
+  };
 
-        if (!validateForm()) return; // Validate the form before proceeding
+  // Find product using the product ID
+  const findProduct = async (e) => { // Function to find a product by its ID
+    e.preventDefault(); // Prevent form submission
+    if (!validateProductId()) return; // If product ID is invalid, stop the function
 
-        setLoadingFind(true); // Set the loading state to true
-        setError(''); // Clear any previous error messages
-        setSuccess(''); // Clear any previous success messages
+    setLoading(true); // Set loading to true to indicate the product search is in progress
+    resetMessages(); // Reset any existing error or success messages
+    setProduct(null); // Reset product state to null before searching
 
-        try {
-            // Make a GET request to fetch the product details
-            const response = await axios.get(`https://fakestoreapi.com/products/${productId}`);
-            setProduct(response.data); // Update the product state with the fetched data
-            setProductId(String(response.data.id)); // Update the product ID state
-        } catch (error) {
-            setProduct(null); // Clear the product state if an error occurs
-            setError(error.response?.data?.message || error.message || 'Failed to find product'); // Set an error message
-            console.error("Find error:", error); // Log the error to the console
-        } finally {
-            setLoadingFind(false); // Set the loading state to false
-        }
-    };
+    try {
+      // Make an HTTP GET request to fetch the product from the API
+      const response = await axios.get(`https://fakestoreapi.com/products/${productId}`); // API endpoint to fetch product by ID
+      setProduct(response.data); // Set the product data in state
+      console.log("Found product:", response.data); // Log the found product
+    } catch (err) {
+      // Handle error if the product is not found
+      console.error("Find error:", err); // Log the error
+      setError(
+        err.response?.data?.message || // Check if the error response has a message
+        "Failed to find product. Please try again." // Display error message from the server or a generic message
+      );
+    } finally {
+      setLoading(false); // Set loading to false once the request is complete
+    }
+  };
 
-    // Function to delete a product by its ID
-    const deleteProduct = async () => {
-        if (!productId || !product) {
-            setError("No product selected for deletion"); // Set an error message if no product is selected
-            return;
-        }
+  // Delete the product using the product ID
+  const deleteProduct = async () => { // Function to delete the product
+    if (!product) { // If no product is selected, show an error
+      setError("No product selected for deletion."); // Set error message
+      return; // Stop function execution
+    }
 
-        setLoadingDelete(true); // Set the loading state to true
-        setError(''); // Clear any previous error messages
-        setSuccess(''); // Clear any previous success messages
+    setLoadingDelete(true); // Set loadingDelete to true to indicate the deletion process is ongoing
+    resetMessages(); // Reset error or success messages
 
-        try {
-            console.log("Attempting to delete product with ID:", productId);
+    try {
+      // Make an HTTP DELETE request to remove the product from the API
+      await axios.delete(`https://fakestoreapi.com/products/${productId}`); // API endpoint to delete product by ID
+      console.log("Deleted product ID:", productId); // Log the ID of the deleted product
+      setSuccess(`Product #${productId} deleted successfully.`); // Display success message
+      setProduct(null); // Reset product data after successful deletion
+      setProductId(""); // Reset the product ID input field
+    } catch (err) {
+      // Handle error during product deletion
+      console.error("Delete error:", err); // Log the error
+      setError(
+        err.response?.data?.message || // Check if the error response has a message
+        "Failed to delete product. Please try again." // Display error message from the server or a generic message
+      );
+    } finally {
+      setLoadingDelete(false); // Set loadingDelete to false after the deletion request is complete
+    }
+  };
 
-            // Make a DELETE request to delete the product
-            const response = await axios.delete(`https://fakestoreapi.com/products/${productId}`);
+  return (
+    <div
+      className="bg-info d-flex justify-content-center align-items-start py-5" // Styling for the background and layout of the container
+      style={{ minHeight: "100vh", overflow: "hidden" }} // Make sure the height is 100% of the viewport and prevent scrolling
+    >
+      <Container className="bg-info p-4 rounded shadow-sm" style={{ maxWidth: "700px" }}> {/* Bootstrap container for the form */}
+        <h2 className="mb-4 text-center">Find and Delete a Product</h2> {/* Title of the page */}
 
-            console.log("API response:", response.data);
-            console.log("Deleted Product Info:", product);
+        {error && <Alert variant="danger">{error}</Alert>} {/* Display error alert if error message exists */}
+        {success && <Alert variant="success">{success}</Alert>} {/* Display success alert if success message exists */}
 
-            setSuccess(`Product #${productId} deleted successfully`); // Set a success message
-            setProduct(null); // Clear the product state
+        <Form onSubmit={findProduct} className="d-flex flex-column align-items-center"> {/* Form to find a product */}
+          <Form.Group
+            controlId="productId" // Control ID for the product ID input field
+            className="mb-3 w-100 d-flex flex-column align-items-center" // Bootstrap class for styling and layout
+          >
+            <Form.Label className="w-100 text-center">Product ID</Form.Label> {/* Label for the input field */}
+            <Form.Control
+              type="text" // Input type for the product ID
+              placeholder="Enter product ID" // Placeholder text for the input field
+              value={productId} // Value of the input field bound to the productId state
+              onChange={handleProductIdChange} // Update the productId state on input change
+              disabled={loading || loadingDelete} // Disable input if loading or deleting
+              style={{ width: "60%" }} // Set the width of the input field
+            />
+          </Form.Group>
 
-            // Redirect to the product listing page after deletion
-            setTimeout(() => {
-                navigate("/products"); // Redirect to the products page
-            }, 1500); // Redirect after 1.5 seconds to show the success message
-        } catch (error) {
-            console.error("Delete error:", error); // Log the error to the console
-            setError(
-                error.response?.data?.message ||
-                error.message ||
-                'Failed to delete product' // Set an error message
-            );
-        } finally {
-            setLoadingDelete(false); // Set the loading state to false
-        }
-    };
-
-    return (
-        <Container className="mt-5">
-            {/* Page heading */}
-            <h2 className="mt-5 text-h">Find and Delete a Product</h2>
-
-            {/* Display error messages */}
-            {error && <div style={{ color: 'red' }}>{error}</div>}
-
-            {/* Display success messages */}
-            {success && <div style={{ color: 'green' }}>{success}</div>}
-
-            {/* Form for finding a product */}
-            <Form onSubmit={findProduct}>
-                <Form.Group className="mb-3 form">
-                    <Form.Label>Product ID</Form.Label>
-                    <Form.Control
-                        type="number"
-                        placeholder="Enter product ID"
-                        name="productId"
-                        value={productId}
-                        onChange={handleproductIdChange}
-                        required
-                        disabled={loadingFind || loadingDelete} // Disable input while loading
-                    />
-                </Form.Group>
-
-                {/* Button to find a product */}
-                <Button variant="primary" type="submit" disabled={loadingFind}>
-                    {loadingFind ? (
-                        <>
-                            <Spinner animation="border" size="sm" className="me-2" />
-                            Finding...
-                        </>
-                    ) : (
-                        "Find Product"
-                    )}
-                </Button>
-            </Form>
-
-            {/* Display product details if a product is found */}
-            {product && (
-                <div className="mt-4">
-                    <h4>Product Info</h4>
-                    <p><strong>Title:</strong> {product.title}</p>
-                    <p><strong>Description:</strong> {product.description}</p>
-                    <p><strong>Category:</strong> {product.category}</p>
-                    <p><strong>Price:</strong> ${product.price}</p>
-                    <p><strong>Image:</strong> <img src={product.image} alt={product.title} width="100" /></p>
-
-                    {/* Button to delete the product */}
-                    <Button
-                        variant="danger"
-                        className="mt-3"
-                        onClick={deleteProduct}
-                        disabled={loadingDelete} // Disable button while loading
-                    >
-                        {loadingDelete ? (
-                            <>
-                                <Spinner animation="border" size="sm" className="me-2" />
-                                Deleting...
-                            </>
-                        ) : (
-                            "Delete Product"
-                        )}
-                    </Button>
-                </div>
+          <Button
+            variant="primary" // Button styled with blue color
+            type="submit" // Submit type to trigger form submission
+            disabled={loading || loadingDelete} // Disable the button if loading or deleting
+            style={{ width: "40%" }} // Set the width of the button
+          >
+            {loading ? ( // Display loading state in the button while searching
+              <>
+                <Spinner
+                  as="span" // Spinner component for loading indication
+                  animation="border" // Spinner animation type
+                  size="sm" // Size of the spinner
+                  role="status" // Role for accessibility
+                  aria-hidden="true" // Hide spinner from screen readers
+                />{" "} 
+                Finding...
+              </> // Show spinner and text while loading
+            ) : (
+              "Find Product"
             )}
-        </Container>
-    );
+          </Button>
+        </Form>
+
+        {product && ( // Display product details if product is found
+          <div className="mt-4 p-3 rounded shadow-sm bg-info form"> {/* Container for product details */}
+            <h4 className="mb-3">Product Information</h4> {/* Title for product information */}
+            <p><strong>Title:</strong> {product.title}</p> {/* Display product title */}
+            <p><strong>Category:</strong> {product.category}</p> {/* Display product category */}
+            <p><strong>Price:</strong> ${product.price}</p> {/* Display product price */}
+            <p><strong>Description:</strong> {product.description}</p> {/* Display product description */}
+            <div className="text-center"> {/* Centered image display */}
+              <img
+                src={product.image} // Display product image
+                alt={product.title} // Alt text for image
+                width="150" // Set image width
+                height="150" // Set image height
+                style={{ objectFit: "contain" }} // Style to fit the image within the container
+                className="mb-3" // Margin bottom for spacing
+              />
+            </div>
+
+            <div className="d-flex justify-content-center mt-3"> {/* Flexbox for button layout */}
+              <Button
+                variant="danger" // Delete button styled with red color
+                onClick={deleteProduct} // Trigger delete product function
+                disabled={loadingDelete} // Disable button if deleting
+                style={{ width: "40%" }} // Set the width of the button
+              >
+                {loadingDelete ? ( // Display loading state in the button while deleting
+                  <>
+                    <Spinner
+                      as="span" // Spinner component for loading indication
+                      animation="border" // Spinner animation type
+                      size="sm" // Size of the spinner
+                      role="status" // Role for accessibility
+                      aria-hidden="true" // Hide spinner from screen readers
+                    />{" "} 
+                    Deleting...
+                  </> // Show spinner and text while loading
+                ) : (
+                  "Delete Product"
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Container>
+    </div>
+  );
 };
 
-// Export the DeleteProduct component as the default export
+// Makes the DeleteProduct component available for use in other parts of the application 
 export default DeleteProduct;

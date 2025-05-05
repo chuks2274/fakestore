@@ -69,7 +69,8 @@
   width: 250px; /* Set the width of the card */
   margin-left: 50px; /* Add left margin */
   padding: 10px; /* Add padding inside the card */
-  margin-top: 10px; /* Add top margin */
+  margin-top: 20px; /* Add top margin */
+  margin-bottom: 20px;  /* Add top margin */
   cursor: pointer; /* Change cursor to pointer on hover */
   box-shadow: 5px 5px 5px hsla(0, 0%, 0%, 0.1); /* Add shadow for the card */
   transition: transform 0.3s ease; /* Smooth transition for hover effect */
@@ -103,23 +104,14 @@
   letter-spacing: 1px; /* Add spacing between letters */
 }
 
-/* Style for forms */
-.form {
-  width: 60%; /* Set the width of the form */
-  margin: auto; /* Center the form horizontally */
+/* Background-color style for main container */
+.bg-info {
+  min-height: 100vh; /* Ensures the background spans the full viewport height */
+  display: flex; /* Flexbox is used to position items within a container */
+  flex-direction: column;  /* This would arrange child elements in a vertical column within the flex container */
 }
 
-/* Background image for the Home page */
-.home-background {
-  background-image: url("./Picture/pic-60.jpg"); /* Set the background image */
-  background-size: cover; /* Ensure the image covers the entire area */
-  background-position: center; /* Center the image */
-  background-repeat: no-repeat; /* Prevent the image from repeating */
-  min-height: calc(100vh - 100px); /* Subtract the footer height */
-  width: 100%; /* Ensure it spans the full width */
-  position: relative; /* Allow absolute positioning for child elements */
-}
-
+ 
 /* Style for the content on top of the background image */
 .home-content {
   position: relative; /* Position the content relative to the background */
@@ -129,33 +121,16 @@
   padding: 20px; /* Add padding around the content */
 }
 
-/* Ensure the footer stays at the bottom of the page */
-.footer-container {
-  position: fixed; /* Fix the footer at the bottom of the page */
-  bottom: 0; /* Align the footer to the bottom */
-  left: 0; /* Align the footer to the left */
-  width: 100%; /* Make the footer span the full width */
-  background-color: var(--footer-bg); /* Set the footer background color */
-  text-align: center; /* Center-align the text */
-  padding: 10px 0; /* Add vertical padding */
-}
-
-.footer {
-  font-size: 14px; /* Set the font size for the footer text */
-  color: var(--footer-text); /* Set the footer text color */
-}
-
+ 
 .text-footer {
   margin: 0; /* Remove margin */
   letter-spacing: 1px; /* Add spacing between letters */
 }
 
-/* Push the footer to the bottom */
-main {
-  flex: 1; /* Allow the main content to grow and push the footer down */
-}
 
-/* Add space below the product list */
+/* Add space below the product list  */
 .ProductList .container {
   margin-bottom: 100px; /* Add bottom margin to the product list */
+   
 }
+ 

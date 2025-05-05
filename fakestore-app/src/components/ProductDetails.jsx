@@ -1,162 +1,256 @@
-// Import necessary libraries and components
-import { useState, useEffect } from "react"; // React hooks for managing state and side effects
-import { useParams, useNavigate } from "react-router-dom"; // Hooks for accessing route parameters and navigation
-import axios from "axios"; // Axios for making HTTP requests
-import Card from "react-bootstrap/Card"; // Bootstrap Card component for displaying product details
-import Container from "react-bootstrap/Container"; // Bootstrap Container for layout
-import Button from "react-bootstrap/Button"; // Bootstrap Button component for actions
-import Spinner from "react-bootstrap/Spinner"; // Bootstrap Spinner for loading indicators
+// React hooks for component state and lifecycle
+import { useState, useEffect } from "react";
+// React Router hooks for accessing route parameters and navigation
+import { useParams, useNavigate } from "react-router-dom";
+// Axios for HTTP requests
+import axios from "axios";
+// Bootstrap components for UI styling
+import {
+  Card, 
+  Container,
+  Button,
+  Spinner,
+  Alert,
+} from "react-bootstrap";
+// Icon for cart button
+import { FaShoppingCart } from "react-icons/fa";
 
-// Define the ProductDetails component
-const ProductDetails = () => {
-  const { id } = useParams(); // Extract the product ID from the route parameters
-  const navigate = useNavigate(); // Initialize the navigate function for redirection
+// Main functional component for displaying product details
+const ProductDetails = () => { 
+  // Extract product ID from route parameters
+  const { id } = useParams();
+  // Hook to programmatically navigate between routes
+  const navigate = useNavigate();
 
-  // State variables for managing product details, loading, and error states
-  const [product, setProduct] = useState(null); // Stores the product details
-  const [loading, setLoading] = useState(true); // Tracks whether the product data is being fetched
-  const [error, setError] = useState(null); // Stores error messages during data fetching
-  const [deleting, setDeleting] = useState(false); // Tracks whether the product is being deleted
-  const [deleteError, setDeleteError] = useState(null); // Stores error messages during deletion
-  const [deleteSuccess, setDeleteSuccess] = useState(null); // Stores success messages after deletion
-  const [cartQuantity, setCartQuantity] = useState(0); // Tracks the quantity of the product in the cart
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false); // Toggles the delete confirmation message
+  // State for product data
+  const [product, setProduct] = useState(null);
+  // State to indicate if data is loading
+  const [loading, setLoading] = useState(true);
+  // State to hold any error messages
+  const [error, setError] = useState("");
+  // State to track quantity of this product in cart
+  const [cartQuantity, setCartQuantity] = useState(0);
+  // State to track total number of items in cart
+  const [totalCartItems, setTotalCartItems] = useState(0);
 
-  // Fetch product details from the API when the component mounts or the ID changes
-  useEffect(() => {
-    setLoading(true); // Set loading state to true
-    setError(null); // Clear any previous errors
-    axios
-      .get(`https://fakestoreapi.com/products/${id}`) // API call to fetch product details
-      .then((response) => {
-        setProduct(response.data); // Update the product state with the fetched data
-      })
-      .catch((error) => {
-        setError(`Failed to fetch product: ${error.message}`); // Set error message if the request fails
-      })
-      .finally(() => {
-        setLoading(false); // Set loading state to false
-      });
-  }, [id]); // Dependency array ensures this runs when the ID changes
+  // States for handling product deletion
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState("");
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-  // Load the cart data from localStorage when the component mounts
-  useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || []; // Retrieve the cart from localStorage
-    const existingProduct = cart.find((item) => item.id === product?.id); // Check if the product is already in the cart
-    if (existingProduct) {
-      setCartQuantity(existingProduct.quantity); // Update the cart quantity state
-    }
-  }, [product]); // Dependency array ensures this runs when the product changes
+  // Fetch product details on component mount or when ID changes
+  useEffect(() => { // Effect to fetch product details
+    const fetchProduct = async () => { // Function to fetch product data from API
+      try {
+        const res = await axios.get(`https://fakestoreapi.com/products/${id}`); // API call to fetch product details
+        setProduct(res.data); // Set fetched product
+        setError(""); // Clear error
+      } catch (err) {
+        setError("Failed to fetch product details."); // Set error message
+        console.error(err);
+      } finally {
+        setLoading(false); // End loading state
+      }
+    };
 
-  // Handle adding the product to the cart
-  const handleAddToCart = () => {
-    let cart = JSON.parse(localStorage.getItem("cart")) || []; // Retrieve the cart from localStorage
-    const existingProduct = cart.find((item) => item.id === product.id); // Check if the product is already in the cart
+    fetchProduct(); // Call the fetch function
+  }, [id]); // Dependency: runs when `id` changes
 
-    if (existingProduct) {
-      existingProduct.quantity += 1; // Increment the quantity if the product exists
-      setCartQuantity(existingProduct.quantity); // Update the cart quantity state
+  // Update cart states when product data is available
+  useEffect(() => { // Effect to update cart states
+    if (!product) return; // Exit if product is not yet loaded
+    const cart = JSON.parse(localStorage.getItem("cart")) || []; // Get cart from localStorage
+
+    // Get quantity of current product in cart
+    const existing = cart.find((item) => item.id === product.id); // Check if product exists in cart
+    setCartQuantity(existing ? existing.quantity : 0); // Set cart quantity
+
+    // Get total quantity of all items in cart
+    const total = cart.reduce((sum, item) => sum + item.quantity, 0); // Calculate total items in cart
+    setTotalCartItems(total); // Set total items in cart
+  }, [product]); // Run when product is set
+
+  // Adds product to cart and updates localStorage and UI states
+  const handleAddToCart = () => { // Function to handle adding product to cart
+    const cart = JSON.parse(localStorage.getItem("cart")) || []; // Get cart from localStorage
+    const index = cart.findIndex((item) => item.id === product.id); // Check if product is already in cart
+
+    if (index >= 0) { // if product is already in cart
+      cart[index].quantity += 1; // Increment quantity if already in cart
+      setCartQuantity(cart[index].quantity); // Update cart quantity state
     } else {
-      product.quantity = 1; // Set the initial quantity to 1
-      cart.push(product); // Add the product to the cart
-      setCartQuantity(1); // Update the cart quantity state
+      const newProduct = { ...product, quantity: 1 }; // Create new product object with quantity
+      cart.push(newProduct); // Add new product to cart
+      setCartQuantity(1); // Set cart quantity to 1 for new product
     }
 
-    localStorage.setItem("cart", JSON.stringify(cart)); // Save the updated cart to localStorage
+    localStorage.setItem("cart", JSON.stringify(cart)); // Save updated cart to localStorage
+
+    // Recalculate total cart items
+    const total = cart.reduce((sum, item) => sum + item.quantity, 0); // Calculate total items in cart
+    setTotalCartItems(total); // Update total items in cart state
+
+    // Navigate back to product list after a short delay
+    setTimeout(() => navigate("/products"), 1000); // Redirect to product list after 1 second
   };
 
-  // Handle deleting the product
-  const handleDeleteProduct = () => {
-    setDeleting(true); // Set deleting state to true
-    setDeleteError(null); // Clear any previous delete errors
-    setDeleteSuccess(null); // Clear any previous delete success messages
+  // Handles product deletion with confirmation and feedback
+  const handleDeleteProduct = async () => { // Function to handle product deletion
+    setDeleting(true); // Start deletion state
+    setDeleteError(""); // Clear error
+    setDeleteSuccess(""); // Clear previous success
 
-    axios
-      .delete(`https://fakestoreapi.com/products/${id}`) // API call to delete the product
-      .then(() => {
-        setDeleteSuccess("Product deleted successfully!"); // Set success message
-        setTimeout(() => {
-          navigate("/products"); // Redirect to the product list page after 2 seconds
-        }, 2000);
-      })
-      .catch((error) => {
-        setDeleteError(`Failed to delete product: ${error.message}`); // Set error message if the request fails
-      })
-      .finally(() => {
-        setDeleting(false); // Set deleting state to false
-        setShowConfirmDelete(false); // Hide the delete confirmation message
-      });
+    try {
+      await axios.delete(`https://fakestoreapi.com/products/${id}`); // API call to delete
+      setDeleteSuccess("Product deleted successfully!"); // Set success message
+      setTimeout(() => navigate("/products"), 2000); // Redirect after success
+    } catch (err) {
+      setDeleteError("Failed to delete the product."); // Set error message
+      console.error(err);
+    } finally {
+      setDeleting(false); // End deleting state
+      setShowConfirmDelete(false); // Hide confirm box
+    }
   };
 
-  // Toggle the delete confirmation message
-  const toggleDeleteConfirmation = () => {
-    setShowConfirmDelete(!showConfirmDelete); // Toggle the confirmation message visibility
-  };
+  // Show loading spinner while data is being fetched
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center min-vh-100 bg-info"> {/* Full-screen loading spinner */}
+        <Spinner animation="border" variant="primary" /> {/* Bootstrap spinner for loading indication */}
+      </div>
+    );
+  }
 
-  // Display a loading message while the product data is being fetched
-  if (loading) return <p>Loading product...</p>;
+  // Show error message if fetch fails
+  if (error) {
+    return (
+      // Outer div that serves as the full-page container with a blue background
+<div className="bg-info d-flex justify-content-center align-items-center min-vh-100 w-100"> 
+  
+  {/*Bootstrap Alert component styled as a red ("danger") alert and centered text*/}
+  <Alert variant="danger" className="text-center">
+    
+  {/*Bold label for the error followed by the actual error message */}
+    <strong>Error:</strong> {error}
+  
+  </Alert>
+</div>
+    );
+  }
 
-  // Display an error message if the product data fails to load
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
-
-  // Render the product details
+  // Render product detail page once data is ready
   return (
-    <Container>
-      <Card>
-        {/* Display the product image */}
-        <Card.Img variant="top" src={product.image} alt={product.title} />
-        <Card.Body>
-          {/* Display the product title */}
-          <Card.Title>{product.title}</Card.Title>
-          {/* Display the product price */}
-          <Card.Text>${product.price}</Card.Text>
-          {/* Display the product description */}
-          <Card.Text>{product.description}</Card.Text>
+    <div className="bg-info py-4 min-vh-100"> {/* Full-screen product detail page */}
+      <Container>
+        <Card className="shadow"> {/* Bootstrap card for product details*/}
+          {/* Product image */}
+          <Card.Img
+            variant="top" // Image variant for card top
+            src={product.image} // Product image URL
+            alt={product.title} // Alt text for image
+            style={{ objectFit: "contain", height: "300px", padding: "1rem" }} // Style for image to fit within card
+          />
+          <Card.Body>
+            {/* Product title and price */}
+            <Card.Title>{product.title}</Card.Title> {/* Product title */}
+            <Card.Text className="fw-bold text-success">${product.price}</Card.Text> {/* Product price with formatting */}
+            <Card.Text>{product.description}</Card.Text> {/* Product description */}
 
-          {/* Action buttons for adding to cart and deleting the product */}
-          <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-            <Button variant="primary" onClick={handleAddToCart} disabled={deleting}>
-              {cartQuantity > 0 ? `Add to Cart (${cartQuantity})` : "Add to Cart"}
-            </Button>
-
-            <Button variant="danger" onClick={toggleDeleteConfirmation} disabled={deleting}>
-              {deleting ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                  /> Deleting...
-                </>
-              ) : (
-                "Delete Product"
-              )}
-            </Button>
-          </div>
-
-          {/* Display confirmation message for delete */}
-          {showConfirmDelete && (
-            <div>
-              <p>Are you sure you want to delete this product?</p>
-              <Button variant="danger" onClick={handleDeleteProduct} disabled={deleting}>
-                Yes, Delete
+            {/* Action buttons for cart, delete, navigation */}
+            <div className="d-flex flex-wrap gap-2 my-3"> {/* Flexbox for button layput */}
+              {/* Add to cart with quantity label */}
+              <Button
+                variant="primary" // Bootstrap primary button for adding to cart
+                onClick={handleAddToCart} // Function to handle adding product to cart
+                disabled={deleting} // Disable button if deleting
+              >
+                {cartQuantity > 0 ? `Add to Cart (${cartQuantity})` : "Add to Cart"} {/* Button text changes based on cart quantity */}
               </Button>
-              <Button variant="secondary" onClick={toggleDeleteConfirmation} className="ms-2">
-                Cancel
+
+              {/* Delete product button */}
+              <Button
+                variant="danger" // Bootstrap danger button for deleting product
+                onClick={() => setShowConfirmDelete(true)} // Show confirmation dialog
+                disabled={deleting} // Disable button if deleting
+              >
+                {deleting ? ( // Show spinner if deleting
+                  <>
+                    <Spinner
+                      as="span" // Bootstrap spinner component
+                      animation="border" // Spinner animation type
+                      size="sm" // Small size for spinner
+                      role="status" // Accessibility role
+                      aria-hidden="true" // Hide spinner from screen readers
+                    />{" "} {/* Space between spinner and text */}
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete Product"
+                )}
+              </Button>
+
+              {/* Back to product list */}
+              <Button
+                variant="secondary" // Bootstrap secondary button for navigation
+                onClick={() => navigate("/products")} // Function to navigate back to product list
+              >
+                Back to Products
+              </Button>
+
+              {/* Go to cart with item count */}
+              <Button
+                variant="success" // Bootstrap success button for cart navigation
+                onClick={() => navigate("/cart")} // Function to navigate to cart page
+              >
+                <FaShoppingCart className="me-2" /> {/* Cart icon */}
+                Go to Cart ({totalCartItems}) {/* Display total items in cart */}
               </Button>
             </div>
-          )}
 
-          {/* Show success or error messages */}
-          {deleteSuccess && <p style={{ color: "green" }}>{deleteSuccess}</p>}
-          {deleteError && <p style={{ color: "red" }}>{deleteError}</p>}
-        </Card.Body>
-      </Card>
-    </Container>
+            {/* Confirmation dialog for deletion */}
+            {showConfirmDelete && (  // Show confirmation dialog if delete button is clicked 
+              <div className="mb-3"> {/* Margin bottom for spacing */}
+                <Alert variant="warning"> {/* Bootstrap aleart for warning */}
+                  <p>Are you sure you want to delete this product?</p> {/* Warning message */}
+                  <div className="d-flex gap-2"> {/* Flexbox for button layout */}
+                    <Button
+                      variant="danger" // Bootstrap danger button for confirmation
+                      onClick={handleDeleteProduct} // Function to handle product deletion
+                      disabled={deleting} // Disable button if deleting
+                    >
+                      Yes, Delete
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowConfirmDelete(false)} // Function to hide confirmation dialog
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </Alert>
+              </div>
+            )}
+
+            {/* Show success message after deletion */}
+            {deleteSuccess && ( // Show success message if deletion is successful
+              <Alert variant="success" className="mt-3"> {/* Bootstrap alert for success */}
+                {deleteSuccess} {/* Display success message */}
+              </Alert>
+            )}
+            {/* Show error message if deletion fails */}
+            {deleteError && ( // Show error message if deletion fails
+              <Alert variant="danger" className="mt-3"> {/*Bootstrap alert for error */}
+                {deleteError} {/* Display error message */}
+              </Alert>
+            )}
+          </Card.Body>
+        </Card>
+      </Container>
+    </div>
   );
 };
 
-// Export the ProductDetails component as the default export
+// Makes the ProductDetails component available for use in other parts of the application 
 export default ProductDetails;
